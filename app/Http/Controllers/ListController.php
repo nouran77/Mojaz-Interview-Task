@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListRequest;
 use App\ListItem;
 use Illuminate\Http\Request;
 
 class ListController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('jwt.auth',['except' => ['index','show','getListItems']]);
-    }
 
     /**
      * Display a listing of the resource.
@@ -64,11 +61,8 @@ class ListController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ListRequest $request)
     {
-        $this->validate($request, [
-            'title' => 'required'
-        ]);
 
         $title = $request->title;
 
@@ -89,40 +83,14 @@ class ListController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    /* public function show($id)
-    {
-        $list = ListItem::where('id', $id)->first();
-
-        if ($list) {
-            $response = [
-                'message' => 'List ID' . $list->id,
-                'list' => $list
-            ];
-        } else {
-            return response()->json(['message' => 'This List is not Found'], 404);
-        }
-
-        return response()->json($response, 200);
-
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ListRequest $request, $id)
     {
-        $this->validate($request,[
-            'title' => 'required',
-        ]);
 
         $title = $request->title;
 
@@ -165,6 +133,8 @@ class ListController extends Controller
 
             return response()->json(['message' => 'Deletion Failed'], 404);
         }
+
+        $list->delete();
 
         $response = [
             'message' => 'List is Deleted',

@@ -6,6 +6,8 @@ use App\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
@@ -16,26 +18,20 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:5'
-        ]);
-
-        $name = $request->input('name');
+        $username = $request->input('username');
         $email = $request->input('email');
         $password = $request->input('password');
 
         $user = new User([
-            'name' => $name,
+            'username' => $username,
             'email' => $email,
             'password' => bcrypt($password)
         ]);
 
         $credentials = [
-            'email' => $email,
+            'username' => $username,
             'password' => $password
         ];
 
@@ -44,7 +40,7 @@ class AuthController extends Controller
             try {
                 if (!$token = JWTAuth::attempt($credentials)) {
                     return response()->json([
-                        'message' => 'Email or Password are incorrect',
+                        'message' => 'Username or Password are incorrect',
                     ], 404);
                 }
             } catch (JWTAuthException $e) {
@@ -55,7 +51,7 @@ class AuthController extends Controller
             $user->login = [
                 'href' => 'api/login',
                 'method' => 'POST',
-                'params' => 'email, password'
+                'params' => 'username, password'
             ];
             $response = [
                 'message' => 'User is Created',
@@ -77,19 +73,14 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $this->validate($request, [
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
-
-        $email = $request->input('email');
+        $username = $request->input('username');
         $password = $request->input('password');
 
-        if ($user = User::where('email', $email)->first()) {
+        if ($user = User::where('username', $username)->first()) {
             $credentials = [
-                'email' => $email,
+                'username' => $username,
                 'password' => $password
             ];
 
@@ -97,7 +88,7 @@ class AuthController extends Controller
             try {
                 if (!$token = JWTAuth::attempt($credentials)) {
                     return response()->json([
-                        'message' => 'Email or Password are incorrect',
+                        'message' => 'Username or Password are incorrect',
                     ], 404);
                 }
             } catch (JWTAuthException $e) {

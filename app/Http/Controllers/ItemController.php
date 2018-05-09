@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ItemRequest;
 use App\Item;
 use App\ListItem;
 use Illuminate\Http\Request;
@@ -9,18 +10,19 @@ use Illuminate\Http\Request;
 class ItemController extends Controller
 {
 
-    public function __construct()
+    /**
+     * Store Item in specific List.
+     *
+     * @param  string title, int list_id
+     * @return \Illuminate\Http\Response
+     */
+    public function store(ItemRequest $request,$id)
     {
-        $this->middleware('jwt.auth');
-    }
-
-    public function store(Request $request,$id)
-    {
-        $this->validate($request, [
-            'title' => 'required'
-        ]);
-
         $list = ListItem::find($id);
+
+        if (!$list){
+            return response()->json(['message' => 'List is not Found in the Database'], 404);
+        }
 
         $list_id = $list->id;
 
@@ -50,12 +52,8 @@ class ItemController extends Controller
      * @param  int  $id , int $list_id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request,$list_id,$id)
+    public function update(ItemRequest $request,$list_id,$id)
     {
-        $this->validate($request,[
-            'title' => 'required',
-        ]);
-
         $title = $request->title;
 
         $item = Item::find($id);
@@ -101,6 +99,8 @@ class ItemController extends Controller
         elseif (!$list->items()->where('items.id',$id)->first()){
             return response()->json(['message' => 'Item is not Found in this list'], 404);
         }
+
+        $item->delete();
 
         $response = [
             'message' => 'Item '.$item->title. ' is Deleted',
